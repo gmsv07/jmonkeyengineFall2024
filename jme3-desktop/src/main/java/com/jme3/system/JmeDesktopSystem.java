@@ -127,6 +127,10 @@ public class JmeDesktopSystem extends JmeSystemDelegate {
         }
     }
 
+    private void logContextCreationError(Exception ex, String errorMessage) {
+        logger.log(Level.SEVERE, errorMessage, ex);
+    }
+
     @SuppressWarnings("unchecked")
     private JmeContext newContextLwjgl(AppSettings settings, JmeContext.Type type) {
         try {
@@ -146,13 +150,11 @@ public class JmeDesktopSystem extends JmeSystemDelegate {
             }
 
             return (JmeContext) ctxClazz.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException
-                | IllegalArgumentException | InvocationTargetException
-                | NoSuchMethodException | SecurityException ex) {
-            logger.log(Level.SEVERE, "Failed to create context", ex);
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
+                 InvocationTargetException | NoSuchMethodException | SecurityException ex) {
+            logContextCreationError(ex, "Failed to create context");
         } catch (ClassNotFoundException ex) {
-            logger.log(Level.SEVERE, "CRITICAL ERROR: Context class is missing!\n"
-                    + "Make sure jme3_lwjgl-ogl is on the classpath.", ex);
+            logContextCreationError(ex, "CRITICAL ERROR: Context class is missing! Make sure jme3_lwjgl-ogl is on the classpath.");
         }
 
         return null;
@@ -177,13 +179,11 @@ public class JmeDesktopSystem extends JmeSystemDelegate {
             }
 
             return (JmeContext) ctxClazz.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException
-                | IllegalArgumentException | InvocationTargetException
-                | NoSuchMethodException | SecurityException ex) {
-            logger.log(Level.SEVERE, "Failed to create context", ex);
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
+                 InvocationTargetException | NoSuchMethodException | SecurityException ex) {
+            logContextCreationError(ex, "Failed to create context");
         } catch (ClassNotFoundException ex) {
-            logger.log(Level.SEVERE, "CRITICAL ERROR: Context class is missing!\n"
-                    + "Make sure jme3-jogl is on the classpath.", ex);
+            logContextCreationError(ex, "CRITICAL ERROR: Context class is missing! Make sure jme3-jogl is on the classpath.");
         }
 
         return null;
@@ -196,12 +196,11 @@ public class JmeDesktopSystem extends JmeSystemDelegate {
 
             Class ctxClazz = Class.forName(className);
             return (JmeContext) ctxClazz.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException
-                | IllegalArgumentException | InvocationTargetException
-                | NoSuchMethodException | SecurityException ex) {
-            logger.log(Level.SEVERE, "Failed to create context", ex);
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
+                 InvocationTargetException | NoSuchMethodException | SecurityException ex) {
+            logContextCreationError(ex, "Failed to create context");
         } catch (ClassNotFoundException ex) {
-            logger.log(Level.SEVERE, "CRITICAL ERROR: Context class is missing!", ex);
+            logContextCreationError(ex, "CRITICAL ERROR: Context class is missing! Make sure jme3-jogl is on the classpath.");
         }
 
         return null;

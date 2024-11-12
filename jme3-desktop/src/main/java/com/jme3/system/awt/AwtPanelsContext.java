@@ -189,6 +189,7 @@ public class AwtPanelsContext implements JmeContext {
     }
     
     public AwtPanelsContext(){
+        throw new UnsupportedOperationException("This class cannot be instantiated.");
     }
 
     public AwtPanel createPanel(PaintMode paintMode){
@@ -221,9 +222,9 @@ public class AwtPanelsContext implements JmeContext {
         if (lastThrottleState != needThrottle){
             lastThrottleState = needThrottle;
             if (lastThrottleState){
-                System.out.println("OGL: Throttling update loop.");
+                logger.info("OGL: Throttling update loop.");
             }else{
-                System.out.println("OGL: Ceased throttling update loop.");
+                logger.info("OGL: Ceased throttling update loop.");
             }
         }
 
@@ -231,6 +232,9 @@ public class AwtPanelsContext implements JmeContext {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt(); // Restore the interrupt status
+                // Optionally log the interruption
+                logger.info("Throttle sleep interrupted: " + ex.getMessage());
             }
         }
 

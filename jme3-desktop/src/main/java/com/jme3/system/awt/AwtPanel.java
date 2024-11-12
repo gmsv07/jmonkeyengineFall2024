@@ -60,18 +60,18 @@ public class AwtPanel extends Canvas implements SceneProcessor {
 
     private boolean attachAsMain = false;
 
-    private BufferedImage img;
-    private FrameBuffer fb;
-    private boolean srgb = false;
-    private ByteBuffer byteBuf;
-    private IntBuffer intBuf;
-    private RenderManager rm;
+    private transient BufferedImage img;
+    private transient FrameBuffer fb;
+    private transient boolean srgb = false;
+    private transient ByteBuffer byteBuf;
+    private transient IntBuffer intBuf;
+    private transient RenderManager rm;
     private PaintMode paintMode;
     private final java.util.List<ViewPort> viewPorts = new ArrayList<>();
 
     // Visibility/drawing vars
-    private BufferStrategy strategy;
-    private AffineTransformOp transformOp;
+    private transient BufferStrategy strategy;
+    private transient AffineTransformOp transformOp;
     private final AtomicBoolean hasNativePeer = new AtomicBoolean(false);
     private final AtomicBoolean showing = new AtomicBoolean(false);
     private final AtomicBoolean repaintRequest = new AtomicBoolean(false);
@@ -80,7 +80,7 @@ public class AwtPanel extends Canvas implements SceneProcessor {
     private int newWidth = 1;
     private int newHeight = 1;
     private final AtomicBoolean reshapeNeeded = new AtomicBoolean(false);
-    private final Object lock = new Object();
+    private transient final Object lock = new Object();
 
     public AwtPanel(PaintMode paintMode) {
         this(paintMode, false);
@@ -140,7 +140,6 @@ public class AwtPanel extends Canvas implements SceneProcessor {
     public boolean checkVisibilityState() {
         if (!hasNativePeer.get()) {
             if (strategy != null) {
-//                strategy.dispose();
                 strategy = null;
             }
             return false;
@@ -255,9 +254,6 @@ public class AwtPanel extends Canvas implements SceneProcessor {
             img = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
         }
 
-//        synchronized (lock){
-//            img = (BufferedImage) getGraphicsConfiguration().createCompatibleImage(width, height);
-//        }
         AffineTransform tx = AffineTransform.getScaleInstance(1, -1);
         tx.translate(0, -img.getHeight());
         transformOp = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
@@ -283,10 +279,16 @@ public class AwtPanel extends Canvas implements SceneProcessor {
 
     @Override
     public void preFrame(float tpf) {
+        throw new UnsupportedOperationException("preFrame method not implemented.");
     }
 
     @Override
     public void postQueue(RenderQueue rq) {
+        // This method is currently not implemented because it is part of a
+        // framework or interface that requires a postQueue implementation.
+        // It will throw an UnsupportedOperationException to indicate that
+        // this method has not been implemented yet.
+        throw new UnsupportedOperationException("postQueue method not implemented.");
     }
 
     @Override
@@ -324,16 +326,16 @@ public class AwtPanel extends Canvas implements SceneProcessor {
         if (!attachAsMain && out != fb) {
             throw new IllegalStateException("Why did you change the output framebuffer?");
         }
-
-        // onFrameEnd();
     }
 
     @Override
     public void reshape(ViewPort vp, int w, int h) {
+        throw new UnsupportedOperationException("reshape method not implemented.");
     }
 
     @Override
     public void cleanup() {
+        throw new UnsupportedOperationException("cleanup method not implemented.");
     }
 
     @Override
