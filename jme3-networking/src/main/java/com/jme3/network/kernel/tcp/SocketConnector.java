@@ -33,6 +33,9 @@ package com.jme3.network.kernel.tcp;
 
 import com.jme3.network.kernel.Connector;
 import com.jme3.network.kernel.ConnectorException;
+
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -51,104 +54,102 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *  @version   $Revision$
  *  @author    Paul Speed
  */
-public class SocketConnector implements Connector
-{
-    private Socket sock;
+public class SocketConnector implements Connector {
+    private SSLSocket sslSocket;
     private InputStream in;
     private OutputStream out;
     private SocketAddress remoteAddress;
     private byte[] buffer = new byte[65535];
     private AtomicBoolean connected = new AtomicBoolean(false);
 
-    public SocketConnector( InetAddress address, int port ) throws IOException
-    {
-        this.sock = new Socket(address, port);
-        remoteAddress = sock.getRemoteSocketAddress(); // for info purposes 
-        
-        // Disable Nagle's buffering so data goes out when we
-        // put it there.
-        sock.setTcpNoDelay(true);
-        
-        in = sock.getInputStream();
-        out = sock.getOutputStream();
-        
+    public SocketConnector(InetAddress address, int port) throws IOException {
+        // Create an SSLSocket using SSLSocketFactory
+        SSLSocketFactory sslSocketFactory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+        this.sslSocket = (SSLSocket) sslSocketFactory.createSocket(address, port);
+        remoteAddress = sslSocket.getRemoteSocketAddress(); // For informational purposes
+
+        // Set SSL-specific options (if needed)
+        sslSocket.setEnabledCipherSuites(sslSocket.getSupportedCipherSuites());
+
+        // Disable Nagle's buffering to send data immediately
+        sslSocket.setTcpNoDelay(true);
+
+        // Initialize input and output streams using SSL socket
+        in = sslSocket.getInputStream();
+        out = sslSocket.getOutputStream();
+
         connected.set(true);
     }
- 
-    protected void checkClosed()
-    {
-        if( sock == null )
-            throw new ConnectorException( "Connection is closed:" + remoteAddress );
-    }
-     
-    @Override
-    public boolean isConnected()
-    {
-        if( sock == null )
-            return false;
-        return sock.isConnected();
+
+    protected void checkClosed() {
+        if (sslSocket == null) {
+            throw new ConnectorException("Connection is closed: " + remoteAddress);
+        }
     }
 
     @Override
-    public void close()
-    {
+    public boolean isConnected() {
+        if (sslSocket == null) {
+            return false;
+        }
+        return sslSocket.isConnected();
+    }
+
+    @Override
+    public void close() {
         checkClosed();
         try {
-            Socket temp = sock;
-            sock = null;            
+            SSLSocket temp = sslSocket;
+            sslSocket = null;
             connected.set(false);
             temp.close();
-        } catch( IOException e ) {            
-            throw new ConnectorException( "Error closing socket for:" + remoteAddress, e );
-        }            
-    }     
+        } catch (IOException e) {
+            throw new ConnectorException("Error closing socket for: " + remoteAddress, e);
+        }
+    }
 
     @Override
-    public boolean available()
-    {
+    public boolean available() {
         checkClosed();
         try {
             return in.available() > 0;
-        } catch( IOException e ) {
-            throw new ConnectorException( "Error retrieving data availability for:" + remoteAddress, e );
-        }       
-    }     
-    
+        } catch (IOException e) {
+            throw new ConnectorException("Error retrieving data availability for: " + remoteAddress, e);
+        }
+    }
+
     @Override
-    public ByteBuffer read()
-    {
+    public ByteBuffer read() {
         checkClosed();
-        
+
         try {
             // Read what we can
             int count = in.read(buffer);
-            if( count < 0 ) {
+            if (count < 0) {
                 // Socket is closed
                 close();
                 return null;
             }
 
             // Wrap it in a ByteBuffer for the caller
-            return ByteBuffer.wrap( buffer, 0, count ); 
-        } catch( IOException e ) {
-            if( !connected.get() ) {
+            return ByteBuffer.wrap(buffer, 0, count);
+        } catch (IOException e) {
+            if (!connected.get()) {
                 // Nothing to see here... just move along
                 return null;
-            }        
-            throw new ConnectorException( "Error reading from connection to:" + remoteAddress, e );    
-        }                
+            }
+            throw new ConnectorException("Error reading from connection to: " + remoteAddress, e);
+        }
     }
-    
+
     @Override
-    public void write( ByteBuffer data )
-    {
+    public void write(ByteBuffer data) {
         checkClosed();
-        
+
         try {
             out.write(data.array(), data.position(), data.remaining());
-        } catch( IOException e ) {
-            throw new ConnectorException( "Error writing to connection:" + remoteAddress, e );
+        } catch (IOException e) {
+            throw new ConnectorException("Error writing to connection: " + remoteAddress, e);
         }
-    }   
-    
+    }
 }
