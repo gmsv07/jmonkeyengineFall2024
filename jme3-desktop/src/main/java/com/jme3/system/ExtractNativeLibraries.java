@@ -65,8 +65,16 @@ public class ExtractNativeLibraries {
             System.err.println("You can also use ExtractNativeLibraries getjarexcludes to get a list of excludes for the jar files that contain binaries.");
             System.exit(1);
         }
-        String path = args[1].replace('/', File.separatorChar);
+        // Normalize path separators to the platform-specific file separator
+        String path = args[1].replace('/', File.separatorChar).replace('\\', File.separatorChar);
+
+        // Ensure the folder exists, if not, create it
         File folder = new File(path);
+        if (!folder.exists() && !folder.mkdirs()) {
+            System.err.println("Failed to create or access directory: " + folder.getAbsolutePath());
+            System.exit(2);
+        }
+
         try {
             if ("Windows32".equals(args[0])) {
                 NativeLibraryLoader.extractNativeLibraries(Platform.Windows32, folder);
